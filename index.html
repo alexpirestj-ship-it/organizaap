@@ -2424,7 +2424,16 @@ async function _authLogin() {
   btn.disabled = false; btn.textContent = 'Entrar →';
 
   if (error) {
-    const msg = error.message.includes('Invalid') ? 'E-mail ou senha incorretos.' : error.message;
+    let msg = error.message;
+    if (msg.includes('Invalid') || msg.includes('invalid')) {
+      msg = 'E-mail ou senha incorretos.';
+    } else if (msg.includes('Email not confirmed')) {
+      msg = 'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.';
+    } else if (msg.includes('rate limit') || msg.includes('too many')) {
+      msg = 'Muitas tentativas. Aguarde alguns minutos.';
+    } else if (msg.includes('network') || msg.includes('fetch')) {
+      msg = 'Erro de conexão. Verifique sua internet e tente novamente.';
+    }
     _authSetError('auth-error-login', msg);
     return;
   }
@@ -2453,25 +2462,42 @@ async function _authSignup() {
   btn.disabled = false; btn.textContent = 'Criar minha conta →';
 
   if (error) {
-    _authSetError('auth-error-signup', error.message);
+    // Traduz erros comuns do Supabase para português
+    let msg = error.message;
+    if (msg.includes('already registered') || msg.includes('already been registered')) {
+      msg = 'Este e-mail já possui uma conta. Tente fazer login.';
+    } else if (msg.includes('rate limit') || msg.includes('too many')) {
+      msg = 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
+    } else if (msg.includes('invalid') || msg.includes('Invalid')) {
+      msg = 'E-mail inválido. Verifique e tente novamente.';
+    } else if (msg.includes('Password')) {
+      msg = 'A senha precisa ter pelo menos 6 caracteres.';
+    } else if (msg.includes('Signups not allowed')) {
+      msg = 'Cadastros desativados. Contate o administrador.';
+    }
+    _authSetError('auth-error-signup', msg);
     return;
   }
 
-  // Se o Supabase exigir confirmação de e-mail
+  // Supabase exige confirmação de e-mail (padrão)
   if (data.user && !data.session) {
     const successEl = document.getElementById('auth-success-signup');
-    successEl.textContent = '✅ Conta criada! Verifique seu e-mail para confirmar e então faça login.';
+    successEl.textContent = '✅ Conta criada! Verifique seu e-mail para confirmar e depois faça login.';
     successEl.classList.add('is-visible');
+    // Troca para aba de login automaticamente após 3s
+    setTimeout(() => _authSwitchTab('login'), 3000);
     return;
   }
-  // Caso contrário, onAuthStateChange cuida do login automático
+  // Sem confirmação de e-mail: onAuthStateChange cuida do login
 }
 
 /** Login com Google OAuth */
 async function _authGoogle() {
+  // Garante URL limpa sem barra final para evitar mismatch no OAuth
+  const redirectTo = window.location.origin + '/';
   await _supa.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.href }
+    options: { redirectTo }
   });
 }
 
@@ -5836,23 +5862,19 @@ function boot() {
   // - Reabrir o app com sessão ativa (token salvo no localStorage)
   // - Fazer logout
   _supa.auth.onAuthStateChange(async (event, session) => {
+    console.log('[Auth] evento:', event, '| user:', session?.user?.email || 'nenhum');
     if (session?.user) {
-      // Usuário logado ou sessão restaurada
       await _onAuthSuccess(session.user);
     } else {
-      // Sem sessão: exibe tela de login
       _authUser = null;
       _authShow();
     }
   });
 
-  // Verifica sessão existente ao carregar a página
-  _supa.auth.getSession().then(({ data: { session } }) => {
-    if (!session) {
-      // Nenhuma sessão ativa: mostra login imediatamente
-      _authShow();
-    }
-    // Se há sessão, onAuthStateChange já cuida do resto
+  _supa.auth.getSession().then(({ data: { session }, error }) => {
+    if (error) console.error('[Auth] Erro ao verificar sessão:', error.message);
+    console.log('[Auth] Sessão inicial:', session?.user?.email || 'nenhuma');
+    if (!session) _authShow();
   });
 }
 
