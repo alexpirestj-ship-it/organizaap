@@ -1120,8 +1120,16 @@
       z-index: 9999;
       display: flex; align-items: center; justify-content: center;
       padding: 20px;
+      width: 100vw; height: 100vh;
+      flex-shrink: 0;
+      flex-grow: 0;
+      flex-basis: 0;
+      min-width: 0;
+      overflow: hidden;
     }
-    .auth-screen.is-hidden { display: none; }
+    .auth-screen.is-hidden {
+      display: none !important;
+    }
 
     .auth-card {
       width: 400px; max-width: 100%;
@@ -1507,15 +1515,6 @@
     </div>
   </div>
 
-  <!-- Indicador de sincronização -->
-  <div class="sync-indicator" id="sync-indicator">
-    <div class="sync-indicator__dot"></div>
-    <span id="sync-indicator-text">Sincronizando…</span>
-  </div>
-
-    <span id="sync-indicator-text">Sincronizando…</span>
-  </div>
-
   <!-- ────────────── SIDEBAR ────────────── -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar__logo">
@@ -1616,6 +1615,12 @@
       </button>
       <button class="btn btn--primary" id="fab-topbar">+ Lançamento</button>
     </header>
+
+    <!-- Indicador de sincronização -->
+    <div class="sync-indicator" id="sync-indicator">
+      <div class="sync-indicator__dot"></div>
+      <span id="sync-indicator-text">Sincronizando…</span>
+    </div>
 
     <div class="content">
 
