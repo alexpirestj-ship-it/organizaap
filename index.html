@@ -89,14 +89,15 @@
       top: 0;
       height: 100vh;
       overflow-y: auto;
+      overflow-x: hidden;
       z-index: 100;
     }
 
     .sidebar__logo {
-      padding: 20px 16px 14px;
+      padding: 20px 14px 14px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       border-bottom: 1px solid var(--border);
     }
     .sidebar__logo-mark {
@@ -114,7 +115,8 @@
     .sidebar__logo-text {
       font-family: 'Syne', sans-serif;
       font-weight: 700;
-      font-size: 17px;
+      font-size: 14px;
+      white-space: nowrap;
     }
     .sidebar__logo-text span { color: var(--green); }
 
